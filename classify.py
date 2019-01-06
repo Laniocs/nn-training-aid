@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 # import keras
 import keras
