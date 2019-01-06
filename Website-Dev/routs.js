@@ -37,7 +37,7 @@ router.get("/imgId", function (req, res) {
 
         },
         //rejected
-        function(fn){
+        function (fn) {
             res.send(JSON.stringify("NoImgsLeft"));
             return;
         }
@@ -48,13 +48,14 @@ router.get("/imgId", function (req, res) {
 
 router.get('/imgs', function (req, res) {
     let id = req.query.id;
-    let name = idLibrary.find(e => {
-        return e.id == id;
-    }).name;
-
-    let pos = getImagesfrom + "/" + name;
-    if (name === undefined) {
+    let pos;
+    if (id.toString() === "NoImgsLeft" || id === undefined) {
         pos = "/imgs/sad/sad.jpg";
+    } else {
+        let name = idLibrary.find(e => {
+            return e.id == id;
+        }).name;
+        pos = getImagesfrom + "/" + name;
     }
     res.setHeader('Content-Type', 'image/jpg');
     res.sendFile(path.join(__dirname, pos));
@@ -115,7 +116,7 @@ function getRandomFile() {
 }
 //ICLUDE DEPTH DIFFERENCES!!!!
 
-function makeXML(data, name , dim = {
+function makeXML(data, name = "fdas", dim = {
     width: 0,
     height: 0,
     depth: 0
