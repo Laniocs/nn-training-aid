@@ -1,0 +1,36 @@
+{
+  "name": "fotostation",
+  "version": "1.0.0",
+  "description": "take a foto from your webcam and it will be uploaded (tested on Chrome)",
+  "main": "server.js",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.6.1",
+    "express": "^4.16.3",
+    "gm": "^1.23.1",
+    "image-size": "^0.6.3",
+    "multer": "^1.3.1",
+    "nodemon": "^1.18.4",
+    "p5-manager": "^0.4.2",
+    "python-shell": "^1.0.4",
+    "request": "^2.88.0",
+    "select-random-file": "^1.1.0",
+    "sharp": "^0.20.8",
+    "xmlbuilder": "^10.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Laniocs/nn-training-aid.git"
+  },
+  "author": "Nicolas Hürlimann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Laniocs/nn-training-aid/issues"
+  },
+  "homepage": "https://github.com/Laniocs/nn-training-aid#readme"
+}
