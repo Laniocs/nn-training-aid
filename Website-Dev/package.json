@@ -1,0 +1,35 @@
+{
+  "name": "website-dev",
+  "version": "1.0.0",
+  "description": "Create a server to annotate your images",
+  "main": "server.js",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.5",
+    "ejs": "^2.6.1",
+    "exif-orientation": "^1.0.0",
+    "exif-js": "^2.3.0",
+    "express": "^4.16.3",
+    "filereader": "^0.10.3",
+    "gm": "^1.23.1",
+    "image-size": "^0.6.3",
+    "request": "^2.88.0",
+    "select-random-file": "^1.1.0",
+    "xmlbuilder": "^10.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Laniocs/nn-training-aid.git"
+  },
+  "author": "Nicolas Hürlimann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Laniocs/nn-training-aid/issues"
+  },
+  "homepage": "https://github.com/Laniocs/nn-training-aid#readme"
+}
