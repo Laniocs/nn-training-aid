@@ -57,7 +57,7 @@ def listen():
 
 
 if __name__ == '__main__':
-    sys.stdout.flush(
+    sys.stdout.flush()
 
     #---------change dir set path to RetinaNet-master!!!-----------------#
     os.chdir("path/to/keras-retinanet-master")
