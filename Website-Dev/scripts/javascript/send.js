@@ -1,11 +1,9 @@
-let url2 = "http://127.0.0.1:3002/receiveData";
+let url2 = "/receiveData";
 var points = {
     points: [],
     id: null
 };
 //send the Coordinates
-
-//https://stackoverflow.com/questions/247483/http-get-request-in-javascript
 
 function httpPostAsync(theUrl, dataArray, done) {
     var number = {
@@ -21,7 +19,6 @@ function httpPostAsync(theUrl, dataArray, done) {
     };
 }
 
-//https://stackoverflow.com/questions/247483/http-get-request-in-javascript
 function httpGet(theUrl) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", theUrl, false); // false for synchronous request
