@@ -5,28 +5,46 @@ let ctx = canvas.getContext('2d');
 let temp;
 let moving;
 let img;
-
+var ratio;
 //Download a random imgage
 function drawImg() {
     if (img === undefined) {
         makeRequest("GET", "/imgId", function (err, res) {
             let imgId = res.replace(/\"/ig, "");
-            if (imgId == "NoImgsLeft") {
-                console.log("Not imgs left");
-                return;
-            }
             img = new Image();
             img.onload = function () {
-                document.getElementById('canvas').width = img.width;
-                document.getElementById('canvas').height = img.height;
-                ctx.drawImage(img, 0, 0); // destination rectangle
+                let c = canvas.getBoundingClientRect().y;
+                let d = document.getElementById("send").getBoundingClientRect().height;
+                let e = document.getElementById("parts").getBoundingClientRect().height;
+                let maxH = window.innerHeight - (c + d + 2 * e);
+                let maxW = window.innerWidth * 0.9;
+                let w = img.width;
+                let h = img.height;
+                let perH = h / maxH;
+                let perW = w / maxW;
+            
+                if (perH > 1 || perW > 1) {
+                    if (perH <= perW) {
+                        canvas.width = maxW;
+                        canvas.height = h / perW;
+                    } else {
+                        canvas.height = maxH;
+                        canvas.width = w / perH;
+                    }
+                } else {
+                    canvas.height = h;
+                    canvas.width = w;
+                }
+
+                ctx.drawImage(img, 0, 0, canvas.width,canvas.height); // destination rectangle
                 points.id = imgId;
+                ratio = (w >= h) ? h / canvas.width : w / canvas.height;
             };
             let burl = url + "?id=" + imgId;
             img.src = burl;
         });
     } else {
-        ctx.drawImage(img, 0, 0); // destination rectangle
+        ctx.drawImage(img, 0, 0, canvas.width,canvas.height); // destination rectangle
     }
 }
 
@@ -75,7 +93,6 @@ canvas.onmousedown = function (ev) {
             });
             temp = undefined;
             moving = false;
-            console.log(points);
             return;
         }
         if ($("#parts").val() !== null && img != undefined) {
@@ -100,7 +117,6 @@ canvas.onContextMenu = function () {
 canvas.onmouseup = function () {
     coords = canvas.relMouseCoords(event);
     if (moving) {
-        console.log(temp, coords);
         let top_l = {x: (temp.x < coords.x)? temp.x : coords.x,y: (temp.y < coords.y)? temp.y : coords.y};
         let bot_r = {x: (temp.x > coords.x)? temp.x : coords.x,y: (temp.y > coords.y)? temp.y : coords.y};
         points.points.push({
@@ -121,7 +137,6 @@ window.onmousemove = function () {
     drawImg();
     for (let i = 0; i < points.points.length; i++) {
         drawRect(points.points[i].f, points.points[i].s, points.points[i].c);
-        console.log(points.points[i]);
     }
     if (coords !== undefined && temp !== undefined) {
         drawRect(temp, coords, $("#parts").val());
@@ -139,7 +154,6 @@ window.onload = function () {
 
         $(document).keypress(function (e) {
             let k = e.keyCode;
-            console.log(k)
             for(let i in data){
                 if(k == 49 + parseInt(i) && i < 8){
                     $('#parts').val(data[i].color);
