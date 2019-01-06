@@ -32,7 +32,7 @@ router.post('/up', function (req, res) {
                     .jpeg()
                     .toFile(path.join(__dirname, "/dataset/resized/" + num + ".jpg"))
                     .then((err) => {
-                        fs.unlink(path.join(__dirname, "/dataset/uploaded/" + n + ".png"), (err) => {
+                        fs.unlink(path.join(__dirname, "/dataset/uploaded/" + n + Date.now().toString + ".png"), (err) => {
                             if (err) {
                                 throw err;
                             }
