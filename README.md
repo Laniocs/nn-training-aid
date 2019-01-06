@@ -16,4 +16,4 @@ Here are some Programs which might help you train and using a RetinaNet or a YOL
 After finishing the previous steps you need to make a certificate. Make it using [openssl](https://www.openssl.org/). Paste the Certificates in the Folder and make sure that they are named the same as referenced in the server.js file.
 
 ### Website
-Firstly you need to install keras-retinanet. If you have installed it properly just paste in the keras-retinanet-master folder the classify.py script. You will NEED to edit the file. You will need to specify ´os.chdir´. Reference where your keras-retinanet-master folder is located. Then you NEED to edit the roots.js file. You must edit the shell variable. Also there reference you keras-retinanet-master folder.
+Firstly you need to install keras-retinanet. If you have installed it properly just paste in the keras-retinanet-master folder the classify.py script. You will NEED to edit the file. You will need to specify ´os.chdir´. Reference where your keras-retinanet-master folder is located. Then you NEED to edit the routs.js file. You must edit the shell variable. Also there reference you keras-retinanet-master folder.
