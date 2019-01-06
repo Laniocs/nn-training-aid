@@ -5,12 +5,13 @@ var points = {
 };
 //send the Coordinates
 
+
 function httpPostAsync(theUrl, dataArray, done) {
     var number = {
         value: dataArray
     }
 
-    var xhr = new window.XMLHttpRequest()
+    var xhr = new window.XMLHttpRequest();
     xhr.open('POST', theUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
     xhr.send(JSON.stringify(number));
@@ -34,30 +35,59 @@ function xhrError() {
     console.error(this.statusText);
 }
 
+function clone(obj) {
+    if (null == obj || "object" != typeof obj) return obj;
+    var copy = obj.constructor();
+    for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
+}
 
+function mulBox(obj, m) {
+    let res = clone(obj);
+    res.confidence = Math.floor(res.confidence * 100);
+    res.f = {
+        x: Math.round(obj.f.x * m),
+        y: Math.round(obj.f.y * m)
+    };
+    res.s = {
+        x: Math.round(obj.s.x * m),
+        y: Math.round(obj.s.y * m)
+    };
+    return res;
+}
 
 var SendTheData = function (event) {
+    let sending = [];
     if (img != undefined) {
-        httpPostAsync(url2, points, function (e, args) {
-            args = args.replace(/\"/ig,"");
-            console.log(args);
-            
-            if (args == "done" || args == "deleted") {
-                //reset
-                points = {
-                    points: [],
-                    id: null
-                }
-                img = undefined;
-                temp = undefined;
-                moving = undefined;
-                drawImg();
-            } else {
-                alert("Error");
-            }
-        });
+        
+        for (i of points.points) {
+            sending.push(mulBox(i, ratio));
+        }
     }
-    event.preventDefault();
+    points.points = sending;
+
+
+    httpPostAsync(url2, points, function (e, args) {
+        args = args.replace(/\"/ig, "");
+
+        if (args == "done" || args == "deleted") {
+            //reset
+            points = {
+                points: [],
+                id: null
+            }
+            img = undefined;
+            temp = undefined;
+            moving = undefined;
+            drawImg();
+        } else {
+            alert("Error");
+        }
+    });
+
+event.preventDefault();
 };
 
 //form
