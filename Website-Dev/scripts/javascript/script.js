@@ -6,12 +6,14 @@ let temp;
 let moving;
 let img;
 var ratio;
+var denySend = false;
 //Download a random imgage
 function drawImg() {
     if (img === undefined) {
         makeRequest("GET", "/imgId", function (err, res) {
             let imgId = res.replace(/\"/ig, "");
             img = new Image();
+            if(imgId == "NoImgsLeft")denySend=true;
             img.onload = function () {
                 let c = canvas.getBoundingClientRect().y;
                 let d = document.getElementById("send").getBoundingClientRect().height;
