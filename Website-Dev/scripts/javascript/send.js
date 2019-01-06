@@ -59,6 +59,7 @@ function mulBox(obj, m) {
 }
 
 var SendTheData = function (event) {
+    if(denySend)return true;
     let sending = [];
     if (img != undefined) {
         
@@ -67,7 +68,6 @@ var SendTheData = function (event) {
         }
     }
     points.points = sending;
-
 
     httpPostAsync(url2, points, function (e, args) {
         args = args.replace(/\"/ig, "");
