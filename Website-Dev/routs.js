@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var path = require('path');
-var fs = require("fs");
 var crypto = require('crypto');
 var builder = require('xmlbuilder');
 var sizeOf = require('image-size');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
 
 let idLibrary = [];
 
@@ -19,35 +20,30 @@ router.get('/', function (req, res) {
     });
 });
 
-router.get("/imgId", function (req, res) {
-    let name = getRandomFile();
-    name.then(
-        //if resolved
-        function (fn) {
-            //save that we used this file
-            idLibrary.push({
-                id: makeId(fn),
-                name: fn,
-                time: new Date().getTime()
-            });
-            //send a unique id
-            res.send(JSON.stringify(idLibrary.find((e) => {
-                return e.name == fn;
-            }).id));
+router.get("/imgId", async function (req, res) {
+    const name = await getRandomFile();
 
-        },
-        //rejected
-        function (fn) {
-            res.send(JSON.stringify("NoImgsLeft"));
-            return;
-        }
-    );
+    if (name === false) {
+        res.send(JSON.stringify("NoImgsLeft"));
+        return;
+    }
+
+    idLibrary.push({
+        id: makeId(name),
+        name: name,
+        time: new Date().getTime()
+    });
+
+    //send a unique id
+    res.send(JSON.stringify(idLibrary.find((e) => {
+        return e.name == name;
+    }).id));
 
 });
 
 
 router.get('/imgs', function (req, res) {
-    let id = req.query.id;
+    const id = req.query.id;
     let pos;
     if (id.toString() === "NoImgsLeft" || id === undefined) {
         pos = "/imgs/sad/sad.jpg";
@@ -61,11 +57,15 @@ router.get('/imgs', function (req, res) {
     res.sendFile(path.join(__dirname, pos));
 });
 
-router.post('/receiveData', function (req, res) {
-    let data = req.body.value;
-    let p = idLibrary.findIndex(e => {
+router.post('/receiveData', async function (req, res) {
+    const data = req.body.value;
+    const p = idLibrary.findIndex(e => {
         return e.id == data.id;
     });
+    if(p == -1){
+        res.send(JSON.stringify("error"));
+        return;
+    }
 
     if (data.points.length == 0) {
         fs.unlink(path.join(__dirname, getImagesfrom, idLibrary[p].name));
@@ -74,18 +74,13 @@ router.post('/receiveData', function (req, res) {
         return;
     }
 
-    let nn = new Date().getTime();
+    const nn = new Date().getTime();
     nn = nn.toString() + Math.floor(Math.random() * 1000).toString();
+    await fs.rename(path.join(__dirname, getImagesfrom, idLibrary[p].name), path.join(__dirname, `${imgSave}/${nn}.jpg`))
 
-    fs.rename(path.join(__dirname, getImagesfrom, idLibrary[p].name), path.join(__dirname, `${imgSave}/${nn}.jpg`), (err) => {
-        makeXML(data.points, nn, sizeOf(path.join(__dirname, `${imgSave}/${nn}.jpg`)));
-        idLibrary.splice(p, 1);
-        res.send(JSON.stringify("done"));
-    });
-
-
-
-
+    makeXML(data.points, nn, sizeOf(path.join(__dirname, `${imgSave}/${nn}.jpg`)));
+    idLibrary.splice(p, 1);
+    res.send(JSON.stringify("done"));
 });
 
 router.get('/categories', function (req, res) {
@@ -97,22 +92,20 @@ function makeId(name) {
     return crypto.createHash('md5').update(name + new Date().getTime()).digest('hex');
 }
 
-function getRandomFile() {
-    return new Promise(function (resolve, reject) {
-        const dir = path.join(__dirname, getImagesfrom);
-        let res = fs.readdirSync(dir);
-        let l = res.length;
-        for (let i = 0; i < l; i++) {
-            let bool = idLibrary.some(e => {
-                return e.name == res[i];
-            });
+async function getRandomFile() {
+    const dir = path.join(__dirname, getImagesfrom);
+    const res = await fs.readdirAsync(dir);
+    const l = res.length;
+    for (const i = 0; i < l; i++) {
+        const bool = idLibrary.some(e => {
+            return e.name == res[i];
+        });
 
-            if (!bool) {
-                resolve(res[i]);
-            }
+        if (!bool) {
+            return res[i];
         }
-        reject(false);
-    });
+    }
+    return false;
 }
 //ICLUDE DEPTH DIFFERENCES!!!!
 
@@ -127,15 +120,15 @@ function makeXML(data, name = "fdas", dim = {
     root.ele('filename').text(name + ".jpg");
     root.ele('segmented').text("0");
     //size
-    let size = root.ele("size");
+    const size = root.ele("size");
     size.ele("width").text(dim.width.toString());
     size.ele("height").text(dim.height.toString());
     size.ele("depth").text("3");
 
     //objects
-    for (let i = 0; i < data.length; i++) {
-        let obj = root.ele("object");
-        let d = data[i];
+    for (const i = 0; i < data.length; i++) {
+        const obj = root.ele("object");
+        const d = data[i];
 
         obj.ele("name").text(d.id);
         obj.ele("pose").text("Unspecified");
@@ -150,14 +143,10 @@ function makeXML(data, name = "fdas", dim = {
         bounding.ele("ymax").text(d.s.y.toString());
     }
 
-    let res = root.end({
+    const res = root.end({
         pretty: true
     });
-    fs.writeFile(path.join(__dirname, `${annoSave}/${name}.xml`), res, function (err) {
-        if (err) {
-            return console.log(err);
-        }
-    });
+    fs.writeFile(path.join(__dirname, `${annoSave}/${name}.xml`), res);
 }
 
 //make variable router available for the other script
