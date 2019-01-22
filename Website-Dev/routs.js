@@ -6,6 +6,7 @@ var builder = require('xmlbuilder');
 var sizeOf = require('image-size');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
+const asyncHandler = require('express-async-handler')
 
 let idLibrary = [];
 
@@ -20,7 +21,8 @@ router.get('/', function (req, res) {
     });
 });
 
-router.get("/imgId", async function (req, res) {
+router.get("/imgId", asyncHandler(async function (req, res) {
+    try {
     const name = await getRandomFile();
 
     if (name === false) {
@@ -38,8 +40,10 @@ router.get("/imgId", async function (req, res) {
     res.send(JSON.stringify(idLibrary.find((e) => {
         return e.name == name;
     }).id));
-
-});
+    }catch(e){
+        console.log(e);
+    }
+}));
 
 
 router.get('/imgs', function (req, res) {
@@ -57,31 +61,35 @@ router.get('/imgs', function (req, res) {
     res.sendFile(path.join(__dirname, pos));
 });
 
-router.post('/receiveData', async function (req, res) {
-    const data = req.body.value;
-    const p = idLibrary.findIndex(e => {
-        return e.id == data.id;
-    });
-    if(p == -1){
-        res.send(JSON.stringify("error"));
-        return;
-    }
+router.post('/receiveData',  asyncHandler(async function (req, res) {
+    try {
+        const data = req.body.value;
+        const p = idLibrary.findIndex(e => {
+            return e.id == data.id;
+        });
+        if (p == -1) {
+            res.send(JSON.stringify("error"));
+            return;
+        }
 
-    if (data.points.length == 0) {
-        fs.unlink(path.join(__dirname, getImagesfrom, idLibrary[p].name));
+        if (data.points.length == 0) {
+            await fs.unlinkSync(path.join(__dirname, getImagesfrom, idLibrary[p].name));
+            idLibrary.splice(p, 1);
+            res.send(JSON.stringify("deleted"));
+            return;
+        }
+
+        let nn = new Date().getTime();
+        nn = nn.toString() + Math.floor(Math.random() * 1000).toString();
+        
+        await fs.renameSync(path.join(__dirname, getImagesfrom, idLibrary[p].name), path.join(__dirname, `${imgSave}/${nn}.jpg`));
+        await makeXML(data.points, nn, sizeOf(path.join(__dirname, `${imgSave}/${nn}.jpg`)));
         idLibrary.splice(p, 1);
-        res.send(JSON.stringify("deleted"));
-        return;
+        res.send(JSON.stringify("done"));
+    } catch (e) {
+        console.log(e);
     }
-
-    const nn = new Date().getTime();
-    nn = nn.toString() + Math.floor(Math.random() * 1000).toString();
-    await fs.rename(path.join(__dirname, getImagesfrom, idLibrary[p].name), path.join(__dirname, `${imgSave}/${nn}.jpg`))
-
-    makeXML(data.points, nn, sizeOf(path.join(__dirname, `${imgSave}/${nn}.jpg`)));
-    idLibrary.splice(p, 1);
-    res.send(JSON.stringify("done"));
-});
+}));
 
 router.get('/categories', function (req, res) {
     //JSON file in the /public/skills directory
@@ -96,7 +104,7 @@ async function getRandomFile() {
     const dir = path.join(__dirname, getImagesfrom);
     const res = await fs.readdirAsync(dir);
     const l = res.length;
-    for (const i = 0; i < l; i++) {
+    for (let i = 0; i < l; i++) {
         const bool = idLibrary.some(e => {
             return e.name == res[i];
         });
@@ -109,12 +117,11 @@ async function getRandomFile() {
 }
 //ICLUDE DEPTH DIFFERENCES!!!!
 
-function makeXML(data, name = "fdas", dim = {
+async function makeXML(data, name = "fdas", dim = {
     width: 0,
     height: 0,
     depth: 0
 }) {
-
     var root = builder.create('annotation');
     root.ele('folder').text("imgs");
     root.ele('filename').text(name + ".jpg");
@@ -126,7 +133,7 @@ function makeXML(data, name = "fdas", dim = {
     size.ele("depth").text("3");
 
     //objects
-    for (const i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
         const obj = root.ele("object");
         const d = data[i];
 
@@ -146,7 +153,7 @@ function makeXML(data, name = "fdas", dim = {
     const res = root.end({
         pretty: true
     });
-    fs.writeFile(path.join(__dirname, `${annoSave}/${name}.xml`), res);
+    await fs.writeFileSync(path.join(__dirname, `${annoSave}/${name}.xml`), res);
 }
 
 //make variable router available for the other script

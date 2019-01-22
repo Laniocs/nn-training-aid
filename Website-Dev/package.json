@@ -11,6 +11,7 @@
     "exif-js": "^2.3.0",
     "exif-orientation": "^1.0.0",
     "express": "^4.16.3",
+    "express-async-handler": "^1.1.4",
     "filereader": "^0.10.3",
     "gm": "^1.23.1",
     "image-size": "^0.6.3",
