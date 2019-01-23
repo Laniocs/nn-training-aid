@@ -1,11 +1,11 @@
-var express = require('express');
-var path = require('path');
-var bodyParser = require('body-parser');
-var app = express();
-var cookieParser = require('cookie-parser');
-var cors = require('cors');
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const app = express();
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
-var port = 3002;
+const port = 3002;
 
 //order IS important !
 //viewengine defines the file which is sent in render()
