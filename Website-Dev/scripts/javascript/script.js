@@ -1,52 +1,50 @@
 //load a random Image!
-let url = "/imgs";
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
+const url = "/imgs";
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 let temp;
 let moving;
 let img;
-var ratio;
-var denySend = false;
+let ratio;
+let denySend = false;
 //Download a random imgage
-function drawImg() {
-    if (img === undefined) {
-        makeRequest("GET", "/imgId", function (err, res) {
-            let imgId = res.replace(/\"/ig, "");
-            img = new Image();
-            if(imgId == "NoImgsLeft")denySend=true;
-            img.onload = function () {
-                let c = canvas.getBoundingClientRect().y;
-                let d = document.getElementById("send").getBoundingClientRect().height;
-                let e = document.getElementById("parts").getBoundingClientRect().height;
-                let maxH = window.innerHeight - (c + d + 2 * e);
-                let maxW = window.innerWidth * 0.9;
-                let w = img.width;
-                let h = img.height;
-                let perH = h / maxH;
-                let perW = w / maxW;
-            
-                if (perH > 1 || perW > 1) {
-                    if (perH <= perW) {
-                        canvas.width = maxW;
-                        canvas.height = h / perW;
-                    } else {
-                        canvas.height = maxH;
-                        canvas.width = w / perH;
-                    }
-                } else {
-                    canvas.height = h;
-                    canvas.width = w;
-                }
 
-                ctx.drawImage(img, 0, 0, canvas.width,canvas.height); // destination rectangle
-                points.id = imgId;
-                ratio = (w >= h) ? h / canvas.width : w / canvas.height;
-            };
-            let burl = url + "?id=" + imgId;
-            img.src = burl;
-        });
+
+async function drawImg() {
+    if (img === undefined) {
+        let res = await makeRequest("GET", "/imgId");
+        img = new Image();
+        if (res == "NoImgsLeft") denySend = true;
+        img.onload = function () {
+            const c = canvas.getBoundingClientRect().y;
+            const d = document.getElementById("send").getBoundingClientRect().height;
+            const e = document.getElementById("parts").getBoundingClientRect().height;
+            const maxH = window.innerHeight - (c + d + 2 * e);
+            const maxW = window.innerWidth * 0.9;
+            const w = img.width;
+            const h = img.height;
+            const perH = h / maxH;
+            const perW = w / maxW;
+
+            if (perH > 1 || perW > 1) {
+                if (perH <= perW) {
+                    canvas.width = maxW;
+                    canvas.height = h / perW;
+                } else {
+                    canvas.height = maxH;
+                    canvas.width = w / perH;
+                }
+            } else {
+                canvas.height = h;
+                canvas.width = w;
+            }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // destination rectangle
+            points.id = res;
+            ratio = (w >= h) ? h / canvas.width : w / canvas.height;
+        };
+        img.src = url + "?id=" + res;
     } else {
-        ctx.drawImage(img, 0, 0, canvas.width,canvas.height); // destination rectangle
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // destination rectangle
     }
 }
 
@@ -62,11 +60,11 @@ function drawRect(obj1, obj2, color = "#000000") {
 //https://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
 
 function relMouseCoords(event) {
-    var totalOffsetX = 0;
-    var totalOffsetY = 0;
-    var canvasX = 0;
-    var canvasY = 0;
-    var currentElement = this;
+    let totalOffsetX = 0;
+    let totalOffsetY = 0;
+    let canvasX = 0;
+    let canvasY = 0;
+    let currentElement = this;
 
     do {
         totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
@@ -86,11 +84,11 @@ HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
 canvas.onmousedown = function (ev) {
     if (ev.button === 0) {
-        if (moving == true) {
+        if (moving) {
             points.points.push({
                 f: temp,
                 s: coords,
-                id: $("#parts").find(":selected").text().replace(/\|.*$/,"").replace(/\s/ig,""),
+                id: $("#parts").find(":selected").text().replace(/\|.*$/, "").replace(/\s/ig, ""),
                 c: $("#parts").val()
             });
             temp = undefined;
@@ -104,8 +102,8 @@ canvas.onmousedown = function (ev) {
         }
     } else if (ev.button == 2) {
         coords = canvas.relMouseCoords(event);
-        let p = points.points;
-        for (let i in points.points) {
+        const p = points.points;
+        for (const i in points.points) {
             if (p[i].f.x < coords.x && p[i].s.x > coords.x && p[i].f.y < coords.y && p[i].s.y > coords.y) {
                 points.points.splice(i, 1);
             }
@@ -119,12 +117,18 @@ canvas.onContextMenu = function () {
 canvas.onmouseup = function () {
     coords = canvas.relMouseCoords(event);
     if (moving) {
-        let top_l = {x: (temp.x < coords.x)? temp.x : coords.x,y: (temp.y < coords.y)? temp.y : coords.y};
-        let bot_r = {x: (temp.x > coords.x)? temp.x : coords.x,y: (temp.y > coords.y)? temp.y : coords.y};
+        let top_l = {
+            x: (temp.x < coords.x) ? temp.x : coords.x,
+            y: (temp.y < coords.y) ? temp.y : coords.y
+        };
+        let bot_r = {
+            x: (temp.x > coords.x) ? temp.x : coords.x,
+            y: (temp.y > coords.y) ? temp.y : coords.y
+        };
         points.points.push({
             f: top_l,
             s: bot_r,
-            id: $("#parts").find(":selected").text().replace(/\|.*$/,"").replace(/\s/ig,""),
+            id: $("#parts").find(":selected").text().replace(/\|.*$/, "").replace(/\s/ig, ""),
             c: $("#parts").val()
         });
         temp = undefined;
@@ -137,7 +141,7 @@ window.onmousemove = function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawImg();
-    for (let i = 0; i < points.points.length; i++) {
+    for (let i in points.points) {
         drawRect(points.points[i].f, points.points[i].s, points.points[i].c);
     }
     if (coords !== undefined && temp !== undefined) {
@@ -145,25 +149,24 @@ window.onmousemove = function () {
     }
 };
 
-window.onload = function () {
+window.onload = async function () {
     drawImg();
     //get all categories from my "database"
-    $.get('categories/', function (data) {
+    let data = await makeRequest("GET", "categories/");
 
-        for (var j = 0; j < data.length; j++) {
-            $('#parts').append($('<option></option>').val(data[j].color).html(data[j].id + "|" + data[j].shape).css("background-color", data[j].color));
-        }
+    for (const i in data) {
+        $('#parts').append($('<option></option>').val(data[i].color).html(data[i].id + "|" + data[i].shape).css("background-color", data[i].color));
+    }
 
-        $(document).keypress(function (e) {
-            let k = e.keyCode;
-            for(let i in data){
-                if(k == 49 + parseInt(i) && i < 8){
-                    $('#parts').val(data[i].color);
-                    $('#parts').css("background-color", data[i].color);
-                    break;
-                }
+    $(document).keypress(function (e) {
+        const k = e.keyCode;
+        for (const i in data) {
+            if (k == 49 + parseInt(i) && i < 8) {
+                $('#parts').val(data[i].color);
+                $('#parts').css("background-color", data[i].color);
+                break;
             }
-        });
+        }
     });
 };
 $('#parts').on('change', function () {
