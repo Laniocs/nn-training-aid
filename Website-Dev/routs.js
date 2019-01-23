@@ -12,16 +12,15 @@ let idLibrary = [];
 
 const imgSave = "dataset/imgs";
 const annoSave = "dataset/annotations";
-
 const getImagesfrom = "imgs/imgsToClassify";
 
-router.get('/', function (req, res) {
+router.get('/', (req, res) => {
     res.render("index", {
         title: 'Classify LEGOS'
     });
 });
 
-router.get("/imgId", asyncHandler(async function (req, res) {
+router.get("/imgId", asyncHandler(async (req, res) => {
     const name = await getRandomFile();
 
     if (name === false) {
@@ -42,7 +41,7 @@ router.get("/imgId", asyncHandler(async function (req, res) {
 }));
 
 
-router.get('/imgs', function (req, res) {
+router.get('/imgs', (req, res) => {
     const id = req.query.id;
     let pos;
     if (id.toString() === "NoImgsLeft" || id === undefined) {
@@ -57,7 +56,7 @@ router.get('/imgs', function (req, res) {
     res.sendFile(path.join(__dirname, pos));
 });
 
-router.post('/receiveData', asyncHandler(async function (req, res) {
+router.post('/receiveData', asyncHandler(async (req, res) => {
     const data = req.body.value;
     const p = idLibrary.findIndex(e => {
         return e.id == data.id;
@@ -77,13 +76,16 @@ router.post('/receiveData', asyncHandler(async function (req, res) {
     let nn = new Date().getTime();
     nn = nn.toString() + Math.floor(Math.random() * 1000).toString();
 
+    //move to right Position
     await fs.renameSync(path.join(__dirname, getImagesfrom, idLibrary[p].name), path.join(__dirname, `${imgSave}/${nn}.jpg`));
+    
+    //make XML
     await makeXML(data.points, nn, sizeOf(path.join(__dirname, `${imgSave}/${nn}.jpg`)));
     idLibrary.splice(p, 1);
     res.send(JSON.stringify("done"));
 }));
 
-router.get('/categories', function (req, res) {
+router.get('/categories', (req, res) => {
     //JSON file in the /public/skills directory
     res.sendFile(__dirname + '/categories/categories.json');
 });
@@ -107,7 +109,6 @@ async function getRandomFile() {
     }
     return false;
 }
-//ICLUDE DEPTH DIFFERENCES!!!!
 
 async function makeXML(data, name = "fdas", dim = {
     width: 0,
