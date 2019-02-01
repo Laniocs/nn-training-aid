@@ -1,33 +1,32 @@
-function makeRequest(url, method, data = {}) {
-    if (method == "POST") {
-        return fetch(url, {
-            method: method,
-            body: JSON.stringify(data),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-            }
-
-        }).then(res => res.json());
-    } else {
-        return fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-            }
-        }).then((resp) => {
-            let json = resp.json(); // there's always a body
-            if (resp.status >= 200 && resp.status < 300) {
-              return json;
-            } else {
-              return json.then(Promise.reject.bind(Promise));
-            }
-          })
-    }
-}
-
-function upImg(url, method, data) {
-    return fetch(url, {
+async function upImg(url, method, data) {
+    const res = await fetch(url, {
         method: method,
         body: data,
-    }).then(res => res.json());
+    });
+    const send = await res.json();
+    return send;
+}
+
+function makeRequest(method = "GET", url, dataArray = undefined) {
+    return new Promise((res, rej) => {
+        const data = {
+            value: dataArray
+        }
+
+        const xhr = new window.XMLHttpRequest();
+        xhr.open(method, url, true);
+        
+        if (dataArray != undefined) {
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.send(JSON.stringify(data))
+        } else {
+            xhr.send();
+        }
+        xhr.onload = function () {
+            res(JSON.parse(xhr.response));
+        };
+        xhr.onerror = (e) => {
+            res("fml", e)
+        }
+    });
 }

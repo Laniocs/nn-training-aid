@@ -4,10 +4,11 @@
   "description": "Upload your image and get it classified",
   "main": "routs.js",
   "dependencies": {
-    "bluebird": "^3.5.2",
+    "bluebird": "^3.5.3",
     "cookie-parser": "^1.4.3",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
+    "express-async-handler": "^1.1.4",
     "gm": "^1.23.1",
     "image-size": "^0.6.3",
     "linkscrape": "^1.0.0",

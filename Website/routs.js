@@ -1,17 +1,18 @@
-var express = require('express');
-var router = express.Router();
-var path = require('path');
-var fs = require("fs");
-var crypto = require('crypto');
-var builder = require('xmlbuilder');
+const express = require('express');
+const router = express.Router();
+const path = require('path');
+const crypto = require('crypto');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
+const asyncHandler = require('express-async-handler')
 
 //storage things
-var sizeOf = require('image-size');
 const multer = require("multer");
 const sharp = require('sharp');
 let {
     PythonShell
 } = require('python-shell');
+
 
 let idLibrary = [];
 
@@ -31,7 +32,7 @@ console.log("Retinanet - Mode:");
 console.log("Wait for the Nerual Network to be loaded!");
 
 //----------change to your Location of keras-retinanet-master and my programm classify.py-------------//
-shell = new PythonShell("path/to/keras-retinanet-master/classify.py", shellOptions);
+shell = new PythonShell("/path/to/keras-retinanet-master/classify.py", shellOptions);
 //----------change to your Location of keras-retinanet-master and my programm classify.py-------------//
 
 //Answer the Python
@@ -106,82 +107,48 @@ const upload = multer({
 
 //# HANDLER FOR THE CLASSIFY REQUEST #//
 
-router.post('/upImg', upload.single('foto'), function (req, res) {
+router.post('/upImg', upload.single('foto'), asyncHandler(async function (req, res) {
     //see if worked 
     if (req.file === undefined) {
-        res.send(JSON.stringify("err"));
+        res.status(500).send('no file!');
         return;
     }
     //get name without ending(e.g. .jpg, .png, ...)
-    let n = req.file.filename.replace(/^(.*)(\.)[^\.]*$/, "$1");
-    fs.readFile(req.file.path, (err, data) => {
-        if (err) {
-            throw err;
-        }
-        //resize image
-        sharp(data)
-            .resize(800, 800)
-            .max()
-            .jpeg()
-            .toFile(path.join(__dirname, "/dataset/resized/" + n + ".jpg"))
-            .then(() => {
-                fs.unlink(path.join(__dirname, "/dataset/uploaded/" + req.file.filename), (err) => {
-                    if (err) {
-                        throw err;
-                    }
-                });
-                //make Neural Network Stuff and send it!
-                shell.send(req.file.filename);
+    const n = req.file.filename.replace(/^(.*)(\.)[^\.]*$/, "$1");
+    const data = await fs.readFileSync(req.file.path);
+    //resize image
+    await sharp(data)
+        .resize(800, 800)
+        .max()
+        .jpeg()
+        .toFile(path.join(__dirname, "/dataset/resized/" + n + ".jpg"))
+    await fs.unlinkSync(path.join(__dirname, "/dataset/uploaded/" + req.file.filename));
 
-                //waiting for a result!
-                waitForPython(req.file.filename, (values, id) => {
-                    //send the Id back and Boxes!
-                    res.send(JSON.stringify({
-                        id: id, //req.file exists due to the upload...
-                        values: values //send Boxes
-                    }));
-                });
-            });
-    });
-});
+    //make Neural Network Stuff and send it!
+    shell.send(req.file.filename);
 
-function waitForPython(name, cb) {
-    // TODO Promise + delete idLib!!!
+    // wait for the Python-script to classify the Image, the send it back!
+    let times = 0; 
     let interval = setInterval(_ => {
         let index = idLibrary.find(ele => {
-            return ele.name === name;
+            return ele.name === req.file.filename;
         });
-        
+        times++;
         if (index.classified == true) {
-            cb(index.values, index.id);
             clearInterval(interval);
+            res.send(JSON.stringify({
+                id: index.id, //req.file exists due to the upload...
+                values: index.values //send Boxes
+            }));
             
+        }else if (times > 200){
+            clearInterval(interval);
+            res.status(500).send('Something broke!');
         }
     }, 100);
-}
 
-function toLibrary(name) {
-    if (name === undefined) {
-        return undefined;
-    }
-    if(idLibrary != [])console.log(idLibrary)
-    //save that we used this file
-    idLibrary.push({
-        id: makeId(name),
-        name: name,
-        time: new Date().getTime()
-    });
-    //return a unique id
-    let id = idLibrary.find((e) => {
-        return e.name == name;
-    }).id;
-
-    return id;
-}
-
-function makeId(name) {
-    return crypto.createHash('md5').update(name + new Date().getTime()).digest('hex');
-}
+    
+}));
 
 //send Categories
 

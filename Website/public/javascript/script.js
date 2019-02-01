@@ -32,29 +32,27 @@ function onLoadFunction() {
 }
 
 //sending the picture
-function sendPic() {
+async function sendPic() {
     let formData = new FormData();
 
     let a = document.getElementById('inp').files[0];
     formData.append('foto', a);
-    upImg("/upImg", "POST", formData).then((message) => {
-        let msg = message.values.replace(/\'/ig, "\"");
-        msg = JSON.parse(msg);
-        for (let ms of msg) {
-            if (ms.confidence > lowestConfidence) {
-                let m = mulBox(ms, ratio);
-                console.log(m);
-                if (all != undefined) {
-                    let jData = all.findIndex(ele => {
-                        return ele.id === m.label;
-                    });
-                    m.label = all[jData].shape;
-                }
-                boxes.push(m);
+    let msg = await upImg("/upImg", "POST", formData)
+    msg = msg.values.replace(/\'/ig, "\"");
+    msg = JSON.parse(msg);
+    for (let ms of msg) {
+        if (ms.confidence > lowestConfidence) {
+            let m = mulBox(ms, ratio);
+            if (all != undefined) {
+                let jData = all.findIndex(ele => {
+                    return ele.id === m.label;
+                });
+                m.label = all[jData].shape;
             }
+            boxes.push(m);
         }
-        draw();
-    });
+    }
+    draw();
 }
 
 
@@ -65,10 +63,10 @@ function sendPic() {
 //draw things!
 function drawBox(obj1, obj2, label, color = "#ff00ff") {
     ctx.beginPath();
-    let x = obj1.x;
-    let y = obj1.y;
-    let w = obj2.x - x;
-    let h = obj2.y - y;
+    const x = obj1.x;
+    const y = obj1.y;
+    const w = obj2.x - x;
+    const h = obj2.y - y;
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
     ctx.font = "25px arial";
@@ -85,13 +83,13 @@ function drawBox(obj1, obj2, label, color = "#ff00ff") {
 
 //draw AND resizing of the canvas depending on the windowidth AND ratio definition
 function draw() {
-    let elemRect = document.getElementById("inp").getBoundingClientRect();
-    let maxH = window.innerHeight - elemRect.y;
-    let maxW = window.innerWidth * 0.9;
-    let w = img.width;
-    let h = img.height;
-    let perH = h / maxH;
-    let perW = w / maxW;
+    const elemRect = document.getElementById("inp").getBoundingClientRect();
+    const maxH = window.innerHeight - elemRect.y;
+    const maxW = window.innerWidth * 0.9;
+    const w = img.width;
+    const h = img.height;
+    const perH = h / maxH;
+    const perW = w / maxW;
 
     if (perH > 1 || perW > 1) {
         if (perH <= perW) {
@@ -151,8 +149,6 @@ function clone(obj) {
 //# ALL EVENT HANDLERS #//
 
 
-
-
 //format it right
 function gateWay(id, box) {
     let endBox = [];
@@ -167,10 +163,8 @@ function gateWay(id, box) {
     }
 }
 
-window.onload = function () {
-    $.get('categories/', function (data) {
-        all = data;
-    });
+window.onload = async function () {
+    all = await makeRequest("GET", 'categories/');
 };
 
 

@@ -5,7 +5,6 @@ let points = {
 };
 //send the Coordinates
 
-
 function makeRequest(method = "GET", url, dataArray = undefined) {
     return new Promise((res, rej) => {
         const data = {
@@ -31,7 +30,7 @@ function makeRequest(method = "GET", url, dataArray = undefined) {
 }
 
 function mulBox(obj, m) {
-    let res = { ...obj};
+    let res = {...obj};
     res.confidence = Math.floor(res.confidence * 100);
     res.f = {
         x: Math.round(obj.f.x * m),

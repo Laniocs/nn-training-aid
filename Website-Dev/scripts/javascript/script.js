@@ -7,9 +7,9 @@ let moving;
 let img;
 let ratio;
 let denySend = false;
+
+
 //Download a random imgage
-
-
 async function drawImg() {
     if (img === undefined) {
         let res = await makeRequest("GET", "/imgId");

@@ -1,21 +1,20 @@
-var express = require('express');
-var path = require('path');
-var bodyParser = require('body-parser');
-var app = express();
-var cookieParser = require('cookie-parser');
-const terminalLink = require('terminal-link');
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const app = express();
+const cookieParser = require('cookie-parser');
 
 //get interfaces of network
-var os = require('os');
-var ifaces = os.networkInterfaces();
+const os = require('os');
+const ifaces = os.networkInterfaces();
 
-var port = 3001;
+const port = 3001;
 
 
 let localIp;
 
 Object.keys(ifaces).forEach(function (ifname) {
-  var alias = 0;
+  let alias = 0;
 
   ifaces[ifname].forEach(function (iface) {
     if ('IPv4' !== iface.family || iface.internal !== false) {
