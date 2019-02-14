@@ -47,11 +47,10 @@ async function SendTheData(event) {
     if (denySend) return true;
     let sending = [];
     if (img != undefined) {
-
         for (i of points.points) {
             sending.push(mulBox(i, ratio));
         }
-    }
+    }else return;
     points.points = sending;
 
     let args = await makeRequest("POST", url2, points);

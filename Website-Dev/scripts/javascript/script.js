@@ -40,7 +40,7 @@ async function drawImg() {
             }
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // destination rectangle
             points.id = res;
-            ratio = (w >= h) ? h / canvas.width : w / canvas.height;
+            ratio = img.width / canvas.width
         };
         img.src = url + "?id=" + res;
     } else {
